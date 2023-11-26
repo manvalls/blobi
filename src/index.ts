@@ -35,7 +35,7 @@ export async function readBytes(
   const reader = source.getReader();
   const chunks: Blob[] = [];
   let remaining = bytes;
-  let remainderChunks: Blob[] = [];
+  let remainderChunk: Blob | undefined;
 
   while (remaining > 0) {
     const { done, value } = await reader.read();
@@ -47,25 +47,37 @@ export async function readBytes(
     chunks.push(chunk);
 
     if (chunk.size < value.size) {
-      remainderChunks.push(value.slice(chunk.size));
+      remainderChunk = value.slice(chunk.size);
     }
 
     remaining -= chunk.size;
   }
 
-  if (!remainderChunks.length) {
+  if (!remainderChunk) {
+    reader.releaseLock();
     return [new Blob(chunks), source];
   }
 
-  const t = new TransformStream();
-  const writer = t.writable.getWriter();
-  for (const chunk of remainderChunks) {
-    await writer.write(chunk);
-  }
+  return [
+    new Blob(chunks),
+    new ReadableStream({
+      start: (controller) => {
+        controller.enqueue(remainderChunk);
+      },
+      pull: async (controller) => {
+        const { done, value } = await reader.read();
+        if (done) {
+          controller.close();
+          return;
+        }
 
-  writer.close();
-  source.pipeTo(t.writable);
-  return [new Blob(chunks), t.readable];
+        controller.enqueue(value);
+      },
+      cancel: (reason) => {
+        reader.cancel(reason);
+      },
+    }),
+  ];
 }
 
 export function readBlob(
