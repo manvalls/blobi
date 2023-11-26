@@ -1,0 +1,28 @@
+{
+  "name": "blobi",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "prepare": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manvalls/blobi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/manvalls/blobi/issues"
+  },
+  "homepage": "https://github.com/manvalls/blobi#readme",
+  "peerDependencies": {},
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {}
+}
